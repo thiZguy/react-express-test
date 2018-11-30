@@ -40,16 +40,16 @@ render() {
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
-          <p>
+          {/* <p>
             Edit <code>src/App.js</code> and save to reload.
-          </p>
+          </p> */}
           <a
             className="App-link"
             href="https://reactjs.org"
             target="_blank"
             rel="noopener noreferrer"
           >
-            Learn React
+            Country Informer
           </a>
         </header>
         <p>{this.state.response}</p>
@@ -62,7 +62,7 @@ render() {
             value={this.state.post}
             onChange={e => this.setState({ post: e.target.value })}
           />
-          <button type="submit">Submit</button>
+          <button type="submit">Search</button>
         </form>
         <p>{this.state.responseToPost}</p>
       </div>
