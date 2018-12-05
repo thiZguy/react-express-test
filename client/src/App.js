@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
-import placeholder from './placeholder.svg';
+import placeholder from './assets/placeholder.svg';
 import './App.css';
 import CountryCard from './components/CountryCard';
+import Pagination from './components/Pagination';
 
 const CardList = ({ countries }) => {
   if(countries.length > 0) {
@@ -29,21 +30,13 @@ class App extends Component {
     responseToPost: '',
     flag: placeholder,
     country: null,
-    countries: []
+    countries: [],
+    allCountries: null
   };
 
   componentDidMount() {
-    this.callApi()
-      .then(res => this.setState({ response: res.express }))
-      .catch(err => console.log(err));
+    
   }
-
-  callApi = async () => {
-    const response = await fetch('/api/hello');
-    const body = await response.json();
-    if (response.status !== 200) throw Error(body.message);
-    return body;
-  };
 
   handleSubmit = async e => {
     e.preventDefault();  
@@ -68,7 +61,46 @@ class App extends Component {
     }
   };
 
+  listOnFront = () => {
+    const url = 'https://restcountries.eu/rest/v2/all';
+    fetch(url).then(
+      async res => {
+        const response = await res.json();
+        console.log('the response: ', response);
+        this.setState({ allCountries:  response });
+      }
+    ).catch(
+      error => {
+        console.log('the error: ', error);
+        
+      }
+    );
+  };
+
+  onPageChanged = data => {
+    const { allCountries } = this.state;
+    if(allCountries && allCountries.length > 0){
+      const { currentPage, totalPages, pageLimit } = data;
+
+      const offset = (currentPage - 1) * pageLimit;
+      const currentCountries = allCountries.slice(offset, offset + pageLimit);
+  
+      this.setState({ currentPage, currentCountries, totalPages });
+      console.log('the current countries are: ', currentCountries);
+    }
+  };
+
+  clearListOnFront = () => {
+    this.clearList();
+   this.setState({ allCountries:  null, currentCountries: null });
+  }
+
+  clearList = () => {
+   this.setState({ countries:  [], country: null, flag: placeholder });
+  }
+
 render() {
+  const { allCountries, currentCountries, countries } = this.state;
     return (
       <div className="App">
         <header className="App-header">
@@ -85,10 +117,31 @@ render() {
             { this.state.country ? this.state.country.name : 'Country Informer' }
           </a>
         </header>
+        <br/>
+        <button className="App-button-2" onClick={this.listOnFront}>{'List By Front'}</button>
+        <button className="App-button-2" onClick={this.clearListOnFront}>{'Clear'}</button>
+        <br/>
         <p>{this.state.response}</p>
+        {
+          allCountries && allCountries.length > 0 &&
+          <div
+            className="Container-row d-flex flex-row py-4 align-items-center"
+          >
+            <Pagination
+              totalRecords={allCountries.length}
+              pageLimit={18}
+              pageNeighbours={1}
+              onPageChanged={this.onPageChanged}
+            />
+          </div>
+        }
+        {
+          currentCountries && currentCountries.length > 0 &&
+          <CardList countries={currentCountries} />
+        }
         <form onSubmit={this.handleSubmit}>
           <p>
-            <strong>Look for Country:</strong>
+            <strong>{'Look for Country:'}</strong>
           </p>
           <input
             type="text"
@@ -98,10 +151,13 @@ render() {
           />
           <br/>
           <br/>
-          <button type="submit" className="App-button-1">Search</button>
+          <button type="submit" className="App-button-1">{'Search using Backend'}</button>
         </form>
         {/* <p>{this.state.responseToPost}</p> */}
-        <CardList countries={this.state.countries} />
+        {
+          countries && countries.length > 0 &&
+          <CardList countries={countries} />
+        }
       </div>
     );
   }
